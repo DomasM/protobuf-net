@@ -1,4 +1,4 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using ProtoBuf.BuildTools.Analyzers;
 using ProtoBuf.BuildTools.Internal;
@@ -40,6 +40,17 @@ namespace BuildToolsUnitTests
         protected Task<ICollection<Diagnostic>> AnalyzeAsync(string? sourceCode = null, [CallerMemberName] string? callerMemberName = null, bool ignoreCompatibilityLevelAdvice = true, bool ignorePreferAsyncAdvice = true) =>
             AnalyzeAsync(project => string.IsNullOrWhiteSpace(sourceCode) ? project : project.AddDocument(callerMemberName + ".cs", sourceCode).Project, callerMemberName, ignoreCompatibilityLevelAdvice, ignorePreferAsyncAdvice);
 
+        protected async Task<ICollection<Diagnostic>> AnalyzeMultiFileAsync(List<string> sourceCode, [CallerMemberName] string? callerMemberName = null, bool ignoreCompatibilityLevelAdvice = true, bool ignorePreferAsyncAdvice = true)
+        {
+           return await AnalyzeAsync(project =>
+            {
+                for (int i = 0; i < sourceCode.Count; i++)
+                {
+                    project = project.AddDocument($"{callerMemberName}_{i}_.cs", sourceCode[i]).Project;
+                }
+                return project;
+            }, callerMemberName, ignoreCompatibilityLevelAdvice, ignorePreferAsyncAdvice);
+        }
         protected async Task<ICollection<Diagnostic>> AnalyzeAsync(Func<Project, Project> projectModifier, [CallerMemberName] string? callerMemberName = null, bool ignoreCompatibilityLevelAdvice = true, bool ignorePreferAsyncAdvice = true)
         {
             _ = callerMemberName;
